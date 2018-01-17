@@ -22,6 +22,7 @@
 #     genfilesbbs > files.bbs
 #
 # Depends: unzip unrar
+# Version: 0.0.1
 
 function detect_tools {
 
