@@ -1,0 +1,91 @@
+#!/bin/bash
+## Copyright (C) 2018 Fernando Toledo <ragnarok@docksud.com.ar>
+##
+## This program is free software: you can redistribute it and/or modify it under 
+## the terms of the GNU General Public License as published by the Free Software 
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see http://www.gnu.org/licenses/.
+##
+# This is a simple script to generate files.bbs extracting archives files
+# like zip and rar, i will add more archives asap.
+# Just run this script inside directory that you have your files and redirect
+# the output to files.bbs file name.
+#
+# ex:
+#     genfilesbbs > files.bbs
+#
+# Depends: unzip unrar
+
+function detect_tools {
+
+  TOOLS="unzip unrar"
+  printf "Detected tools..\n" >&2
+
+  for t in $TOOLS
+  do
+    printf "...$t " >&2
+    tool_zip=`which $t`
+
+    if [ $? == 0 ]; then
+        printf "Found!\n" >&2
+    else
+        printf "Nope!\n" >&2
+        printf "You must install this tool, use apt-get install $t \
+(debian based, or your distro package manager)\n" >&2
+        exit 1
+    fi
+
+  done
+
+}
+
+function parse_files {
+
+  printf "\nSearch files...\n\n" >&2
+  for f in `ls -p |grep -v /|grep -v files.bbs`
+  do
+    printf "Parse $f...\n" >&2
+
+    filename=`basename $f`
+    fileext=${filename##*.}
+    fileext_low=${fileext,,}
+    case $fileext_low in
+      zip)
+        printf "$filename is zip\n" >&2
+        diz=`unzip -C -p $filename file_id.diz`
+        printf "$filename $diz\n"
+      ;;
+      rar)
+        printf "$filename is rar\n" >&2
+      ;;
+      *)
+      printf "Unknown/Usupported extension!\n" >&2
+      ;;
+
+    esac
+    printf "\n" >&2
+  done
+}
+
+columnize2 () {
+    indent=$1;
+    collen=$(($(tput cols)-indent));
+    keyname="$2";
+    value=$3;
+    while [ $(echo -n $value| wc -c) -gt 0 ] ; do
+        printf "%-10s %-${indent}s\n" "$keyname" "${value:0:$collen}";
+    keyname="";
+    value=${value:$collen};
+    done
+}
+
+detect_tools
+parse_files
+
